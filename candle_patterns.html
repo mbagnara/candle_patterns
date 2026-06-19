@@ -168,6 +168,12 @@
       gap: 14px;
     }
 
+    .main-column {
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+    }
+
     .info-panel, .patterns-panel, .ai-panel {
       padding: 14px;
     }
@@ -307,7 +313,7 @@
     .ai-chat {
       display: grid;
       gap: 9px;
-      max-height: 420px;
+      max-height: 320px;
       overflow: auto;
       padding-right: 2px;
     }
@@ -378,17 +384,34 @@
     </section>
 
     <section class="layout">
-      <div class="chart-panel">
-        <div class="chart-head">
-          <div>
-            <strong id="chart-title">Secuencia de velas</strong>
-            <span id="chart-subtitle">Genera un ejemplo para empezar.</span>
+      <div class="main-column">
+        <div class="chart-panel">
+          <div class="chart-head">
+            <div>
+              <strong id="chart-title">Secuencia de velas</strong>
+              <span id="chart-subtitle">Genera un ejemplo para empezar.</span>
+            </div>
+            <span>OHLC educativo</span>
           </div>
-          <span>OHLC educativo</span>
+          <div class="chart-wrap">
+            <canvas id="chart"></canvas>
+          </div>
         </div>
-        <div class="chart-wrap">
-          <canvas id="chart"></canvas>
-        </div>
+
+        <section class="ai-panel">
+          <div class="kicker">Tutor AI</div>
+          <p class="copy">Analiza el patrón seleccionado y haz preguntas de seguimiento. Requiere abrir la página desde `pattern_ai_server.py`.</p>
+          <div class="ai-actions">
+            <button id="ai-analyze" class="primary" type="button">Analizar con ChatGPT</button>
+            <button id="ai-clear" type="button">Limpiar chat</button>
+          </div>
+          <textarea id="ai-question" placeholder="Pregunta de seguimiento, por ejemplo: ¿qué hace fuerte o débil este patrón?"></textarea>
+          <div class="ai-actions">
+            <button id="ai-ask" type="button">Preguntar</button>
+          </div>
+          <div id="ai-status" class="ai-status"></div>
+          <div id="ai-chat" class="ai-chat"></div>
+        </section>
       </div>
 
       <aside class="side">
@@ -414,20 +437,6 @@
           <div id="pattern-list" class="patterns"></div>
         </section>
 
-        <section class="ai-panel">
-          <div class="kicker">Tutor AI</div>
-          <p class="copy">Analiza el patrón seleccionado y haz preguntas de seguimiento. Requiere abrir la página desde `pattern_ai_server.py`.</p>
-          <div class="ai-actions">
-            <button id="ai-analyze" class="primary" type="button">Analizar con ChatGPT</button>
-            <button id="ai-clear" type="button">Limpiar chat</button>
-          </div>
-          <textarea id="ai-question" placeholder="Pregunta de seguimiento, por ejemplo: ¿qué hace fuerte o débil este patrón?"></textarea>
-          <div class="ai-actions">
-            <button id="ai-ask" type="button">Preguntar</button>
-          </div>
-          <div id="ai-status" class="ai-status"></div>
-          <div id="ai-chat" class="ai-chat"></div>
-        </section>
       </aside>
     </section>
   </main>
