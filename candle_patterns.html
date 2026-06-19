@@ -1,0 +1,1045 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Candle Confirmation Trainer</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --ink: #131722;
+      --muted: #6b7280;
+      --line: #e0e3eb;
+      --grid: #eef1f6;
+      --bull: #089981;
+      --bear: #f23645;
+      --accent: #2962ff;
+      --soft-accent: #e9efff;
+      --warning: #b7791f;
+      --shadow: 0 12px 30px rgba(19, 23, 34, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 22px 18px 34px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 18px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .subtle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(140px, 1fr));
+      gap: 10px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    select, button {
+      min-height: 40px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      font: inherit;
+      padding: 8px 10px;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 40px;
+      padding: 0 2px;
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: none;
+    }
+
+    .toggle input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 380px;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .chart-panel, .info-panel, .patterns-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .chart-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .chart-head strong {
+      display: block;
+      font-size: 15px;
+    }
+
+    .chart-head span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .chart-wrap {
+      width: 100%;
+      height: 560px;
+      background: #ffffff;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .side {
+      display: grid;
+      gap: 14px;
+    }
+
+    .info-panel, .patterns-panel {
+      padding: 14px;
+    }
+
+    .kicker {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .bull { background: #e3f7ef; color: var(--bull); }
+    .bear { background: #fde9eb; color: var(--bear); }
+    .neutral { background: var(--soft-accent); color: var(--accent); }
+
+    .copy {
+      margin: 0 0 12px;
+      color: #313747;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .rule-list {
+      display: grid;
+      gap: 7px;
+      margin: 10px 0 14px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .rule-list li {
+      display: grid;
+      grid-template-columns: 18px 1fr;
+      gap: 7px;
+      color: #313747;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .check {
+      color: var(--bull);
+      font-weight: 900;
+    }
+
+    .warn {
+      color: var(--warning);
+      font-weight: 900;
+    }
+
+    .patterns {
+      display: grid;
+      gap: 8px;
+      max-height: 280px;
+      overflow: auto;
+    }
+
+    .pattern-row {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 10px;
+      background: white;
+      cursor: pointer;
+    }
+
+    .pattern-row:hover, .pattern-row.selected {
+      border-color: var(--accent);
+      background: #f4f7ff;
+    }
+
+    .pattern-row strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .pattern-row span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .quiz-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .hidden-answer .answer-only {
+      filter: blur(6px);
+      user-select: none;
+    }
+
+    @media (max-width: 980px) {
+      .toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .layout { grid-template-columns: 1fr; }
+      .chart-wrap { height: 460px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Candle Confirmation Trainer</h1>
+        <p class="subtle">Estudia patrones de confirmación dentro de secuencias de velas. Estilo visual tipo TradingView.</p>
+      </div>
+    </header>
+
+    <section class="toolbar" aria-label="Controles">
+      <label>Patrón
+        <select id="pattern-filter">
+          <option value="all">Todos</option>
+          <option value="engulfing">Engulfing</option>
+          <option value="pinbar">Pin Bar</option>
+          <option value="three">3-Candle Reversal</option>
+        </select>
+      </label>
+      <label>Dirección
+        <select id="direction-filter">
+          <option value="both">Ambos</option>
+          <option value="bullish">Bullish</option>
+          <option value="bearish">Bearish</option>
+        </select>
+      </label>
+      <label>Modo
+        <span class="toggle"><input id="hide-answer" type="checkbox"> Ocultar respuesta</span>
+      </label>
+      <button id="new-example" class="primary" type="button">Nuevo ejemplo</button>
+      <button id="show-answer" type="button">Ver respuesta</button>
+    </section>
+
+    <section class="layout">
+      <div class="chart-panel">
+        <div class="chart-head">
+          <div>
+            <strong id="chart-title">Secuencia de velas</strong>
+            <span id="chart-subtitle">Genera un ejemplo para empezar.</span>
+          </div>
+          <span>OHLC educativo</span>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="chart"></canvas>
+        </div>
+      </div>
+
+      <aside class="side">
+        <section id="info-panel" class="info-panel">
+          <div class="kicker">Patrón seleccionado</div>
+          <span id="direction-badge" class="badge neutral">Sin patrón</span>
+          <h2 id="pattern-title" class="answer-only">Nuevo ejemplo</h2>
+          <p id="meaning" class="copy answer-only">Presiona Nuevo ejemplo para generar una secuencia distinta.</p>
+          <div class="kicker">Reglas cumplidas</div>
+          <ul id="rules" class="rule-list"></ul>
+          <div class="kicker">Contexto ideal</div>
+          <p id="context" class="copy answer-only">Usa estos patrones como confirmación, no como señal aislada.</p>
+          <div class="kicker">Cuándo ignorarlo</div>
+          <p id="avoid" class="copy answer-only">Evita patrones en mitad de rango sin zona ni estructura clara.</p>
+          <div class="quiz-actions">
+            <button id="select-prev" type="button">Anterior</button>
+            <button id="select-next" type="button">Siguiente</button>
+          </div>
+        </section>
+
+        <section class="patterns-panel">
+          <div class="kicker">Patrones detectados</div>
+          <div id="pattern-list" class="patterns"></div>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const chart = document.querySelector("#chart");
+    const ctx = chart.getContext("2d");
+    const patternFilter = document.querySelector("#pattern-filter");
+    const directionFilter = document.querySelector("#direction-filter");
+    const newButton = document.querySelector("#new-example");
+    const hideAnswer = document.querySelector("#hide-answer");
+    const showAnswer = document.querySelector("#show-answer");
+    const infoPanel = document.querySelector("#info-panel");
+    const patternList = document.querySelector("#pattern-list");
+    const titleEl = document.querySelector("#pattern-title");
+    const meaningEl = document.querySelector("#meaning");
+    const contextEl = document.querySelector("#context");
+    const avoidEl = document.querySelector("#avoid");
+    const rulesEl = document.querySelector("#rules");
+    const badgeEl = document.querySelector("#direction-badge");
+    const chartTitle = document.querySelector("#chart-title");
+    const chartSubtitle = document.querySelector("#chart-subtitle");
+    const prevButton = document.querySelector("#select-prev");
+    const nextButton = document.querySelector("#select-next");
+
+    const BULL = "#089981";
+    const BEAR = "#f23645";
+    const ACCENT = "#2962ff";
+    const GRID = "#eef1f6";
+
+    let currentExample = null;
+    let selectedPatternIndex = 0;
+    let recentSignatures = [];
+
+    const lessons = {
+      bullishEngulfing: {
+        name: "Bullish Engulfing",
+        family: "engulfing",
+        direction: "bullish",
+        meaning: "Los vendedores empujan primero, pero una vela alcista absorbe el cuerpo bajista anterior y cierra con control comprador.",
+        context: "Mejor en zona de demanda, soporte, barrido de liquidez o final de pullback bajista.",
+        avoid: "Ignóralo si aparece en mitad del rango, si no envuelve el cuerpo previo o si el cierre no muestra control comprador.",
+      },
+      bearishEngulfing: {
+        name: "Bearish Engulfing",
+        family: "engulfing",
+        direction: "bearish",
+        meaning: "Los compradores intentan continuar, pero una vela bajista absorbe el cuerpo alcista anterior y cierra con control vendedor.",
+        context: "Mejor en zona de supply, resistencia, toma de liquidez o final de pullback alcista.",
+        avoid: "Ignóralo si ocurre lejos de una zona relevante o si solo tiene una mecha grande sin cuerpo dominante.",
+      },
+      bullishPinBar: {
+        name: "Bullish Pin Bar",
+        family: "pinbar",
+        direction: "bullish",
+        meaning: "El mercado rechaza precios bajos: hubo venta agresiva, absorción y cierre cerca de la parte alta de la vela.",
+        context: "Mejor en demanda, soporte, retest o después de un barrido bajo mínimos previos.",
+        avoid: "Ignóralo si la mecha inferior no domina o si el cierre queda débil cerca del mínimo.",
+      },
+      bearishPinBar: {
+        name: "Bearish Pin Bar",
+        family: "pinbar",
+        direction: "bearish",
+        meaning: "El mercado rechaza precios altos: hubo compra agresiva, absorción y cierre cerca de la parte baja de la vela.",
+        context: "Mejor en supply, resistencia, retest o después de un barrido sobre máximos previos.",
+        avoid: "Ignóralo si la mecha superior no domina o si el cierre queda fuerte cerca del máximo.",
+      },
+      bullishThree: {
+        name: "Bullish 3-Candle Reversal",
+        family: "three",
+        direction: "bullish",
+        meaning: "Tres velas muestran transición: presión vendedora, pausa/rechazo y entrada fuerte de compradores.",
+        context: "Mejor en zona de demanda con tercera vela cerrando por encima del cuerpo o máximo relevante previo.",
+        avoid: "Ignóralo si la tercera vela no rompe estructura local o si la vela central no muestra pausa/rechazo.",
+      },
+      bearishThree: {
+        name: "Bearish 3-Candle Reversal",
+        family: "three",
+        direction: "bearish",
+        meaning: "Tres velas muestran transición: presión compradora, pausa/rechazo y entrada fuerte de vendedores.",
+        context: "Mejor en zona de supply con tercera vela cerrando por debajo del cuerpo o mínimo relevante previo.",
+        avoid: "Ignóralo si la tercera vela no rompe estructura local o si la vela central no muestra pausa/rechazo.",
+      },
+    };
+
+    function rand(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function randInt(min, max) {
+      return Math.floor(rand(min, max + 1));
+    }
+
+    function choice(items) {
+      return items[Math.floor(Math.random() * items.length)];
+    }
+
+    function candle(open, close, highPad = 1, lowPad = 1) {
+      return {
+        open,
+        close,
+        high: Math.max(open, close) + highPad,
+        low: Math.min(open, close) - lowPad,
+      };
+    }
+
+    function body(c) {
+      return Math.abs(c.close - c.open);
+    }
+
+    function upperWick(c) {
+      return c.high - Math.max(c.open, c.close);
+    }
+
+    function lowerWick(c) {
+      return Math.min(c.open, c.close) - c.low;
+    }
+
+    function isBull(c) {
+      return c.close > c.open;
+    }
+
+    function isBear(c) {
+      return c.close < c.open;
+    }
+
+    function makeCandleFromMove(price, drift, volatility = 1, wickBias = "balanced") {
+      const gap = rand(-1.2, 1.2) * volatility;
+      const open = price + gap;
+      const close = open + drift * volatility;
+      let highPad = rand(0.45, 2.8) * volatility;
+      let lowPad = rand(0.45, 2.8) * volatility;
+      if (wickBias === "upper") highPad *= rand(1.5, 2.8);
+      if (wickBias === "lower") lowPad *= rand(1.5, 2.8);
+      return candle(open, close, highPad, lowPad);
+    }
+
+    function generateTrend(start, count, direction, volatility = 1, mode = "trend") {
+      const candles = [];
+      let price = start;
+      for (let i = 0; i < count; i += 1) {
+        const counterChance = mode === "choppy" ? 0.38 : mode === "pullback" ? 0.24 : 0.12;
+        const goesCounter = Math.random() < counterChance;
+        const sign = direction === "up" ? 1 : -1;
+        const driftSign = goesCounter ? -sign : sign;
+        const size = mode === "range" ? rand(0.25, 1.7) : rand(0.9, 4.8);
+        const wickBias = choice(["balanced", "balanced", "upper", "lower"]);
+        const next = makeCandleFromMove(price, driftSign * size, volatility, wickBias);
+        candles.push(next);
+        price = next.close + rand(-1.0, 1.0) * volatility;
+      }
+      return candles;
+    }
+
+    function addBeforeNoise(candles, count, volatility) {
+      let price = candles[candles.length - 1].close;
+      for (let i = 0; i < count; i += 1) {
+        const next = makeCandleFromMove(price, rand(-1.8, 1.8), volatility, choice(["balanced", "upper", "lower"]));
+        candles.push(next);
+        price = next.close;
+      }
+    }
+
+    function addAfterMove(candles, direction, volatility = 1, count = randInt(2, 6)) {
+      let price = candles[candles.length - 1].close;
+      for (let i = 0; i < count; i += 1) {
+        const drift = direction === "up" ? rand(1.1, 5.8) : rand(-5.8, -1.1);
+        const next = makeCandleFromMove(price, drift, volatility, choice(["balanced", "balanced", direction === "up" ? "lower" : "upper"]));
+        candles.push(next);
+        price = next.close;
+      }
+    }
+
+    function generationProfile(reversalDirection) {
+      const volatility = rand(0.65, 1.85);
+      const beforeCount = randInt(3, 10);
+      const afterCount = randInt(2, 7);
+      const mode = choice(["trend", "trend", "pullback", "choppy"]);
+      const start = rand(72, 132);
+      const preDirection = reversalDirection === "bullish" ? "down" : "up";
+      return { volatility, beforeCount, afterCount, mode, start, preDirection };
+    }
+
+    function generateBullishEngulfing() {
+      const profile = generationProfile("bullish");
+      const candles = generateTrend(profile.start, profile.beforeCount, profile.preDirection, profile.volatility, profile.mode);
+      if (Math.random() < 0.35) addBeforeNoise(candles, randInt(1, 3), profile.volatility);
+      const anchor = candles[candles.length - 1].close;
+      const prevOpen = anchor + rand(0.8, 4.2) * profile.volatility;
+      const prevClose = prevOpen - rand(1.8, 6.0) * profile.volatility;
+      const prev = candle(prevOpen, prevClose, rand(0.4, 2.8) * profile.volatility, rand(0.4, 2.8) * profile.volatility);
+      const currOpen = prevClose - rand(0.1, 2.2) * profile.volatility;
+      const currClose = prevOpen + rand(0.4, 4.3) * profile.volatility;
+      const curr = candle(currOpen, currClose, rand(0.5, 3.4) * profile.volatility, rand(0.4, 2.5) * profile.volatility);
+      candles.push(prev, curr);
+      addAfterMove(candles, "up", profile.volatility, profile.afterCount);
+      return { candles, targetKey: "bullishEngulfing" };
+    }
+
+    function generateBearishEngulfing() {
+      const profile = generationProfile("bearish");
+      const candles = generateTrend(profile.start, profile.beforeCount, profile.preDirection, profile.volatility, profile.mode);
+      if (Math.random() < 0.35) addBeforeNoise(candles, randInt(1, 3), profile.volatility);
+      const anchor = candles[candles.length - 1].close;
+      const prevOpen = anchor - rand(0.8, 4.2) * profile.volatility;
+      const prevClose = prevOpen + rand(1.8, 6.0) * profile.volatility;
+      const prev = candle(prevOpen, prevClose, rand(0.4, 2.8) * profile.volatility, rand(0.4, 2.8) * profile.volatility);
+      const currOpen = prevClose + rand(0.1, 2.2) * profile.volatility;
+      const currClose = prevOpen - rand(0.4, 4.3) * profile.volatility;
+      const curr = candle(currOpen, currClose, rand(0.4, 2.5) * profile.volatility, rand(0.5, 3.4) * profile.volatility);
+      candles.push(prev, curr);
+      addAfterMove(candles, "down", profile.volatility, profile.afterCount);
+      return { candles, targetKey: "bearishEngulfing" };
+    }
+
+    function generateBullishPinBar() {
+      const profile = generationProfile("bullish");
+      const candles = generateTrend(profile.start, profile.beforeCount, profile.preDirection, profile.volatility, profile.mode);
+      if (Math.random() < 0.4) addBeforeNoise(candles, randInt(1, 2), profile.volatility);
+      const base = candles[candles.length - 1].close;
+      const open = base - rand(0.4, 2.4) * profile.volatility;
+      const close = open + rand(0.2, 1.8) * profile.volatility;
+      const b = Math.abs(close - open);
+      const pin = {
+        open,
+        close,
+        high: Math.max(open, close) + rand(0.3, Math.max(1.0, b * 1.1)) * profile.volatility,
+        low: Math.min(open, close) - rand(Math.max(4.0, b * 3.2), Math.max(7.0, b * 5.8)) * profile.volatility,
+      };
+      candles.push(pin);
+      addAfterMove(candles, "up", profile.volatility, profile.afterCount);
+      return { candles, targetKey: "bullishPinBar" };
+    }
+
+    function generateBearishPinBar() {
+      const profile = generationProfile("bearish");
+      const candles = generateTrend(profile.start, profile.beforeCount, profile.preDirection, profile.volatility, profile.mode);
+      if (Math.random() < 0.4) addBeforeNoise(candles, randInt(1, 2), profile.volatility);
+      const base = candles[candles.length - 1].close;
+      const open = base + rand(0.4, 2.4) * profile.volatility;
+      const close = open - rand(0.2, 1.8) * profile.volatility;
+      const b = Math.abs(close - open);
+      const pin = {
+        open,
+        close,
+        high: Math.max(open, close) + rand(Math.max(4.0, b * 3.2), Math.max(7.0, b * 5.8)) * profile.volatility,
+        low: Math.min(open, close) - rand(0.3, Math.max(1.0, b * 1.1)) * profile.volatility,
+      };
+      candles.push(pin);
+      addAfterMove(candles, "down", profile.volatility, profile.afterCount);
+      return { candles, targetKey: "bearishPinBar" };
+    }
+
+    function generateBullishThree() {
+      const profile = generationProfile("bullish");
+      const candles = generateTrend(profile.start, profile.beforeCount, profile.preDirection, profile.volatility, profile.mode);
+      const p = candles[candles.length - 1].close;
+      const first = candle(
+        p + rand(0.8, 3.2) * profile.volatility,
+        p - rand(2.4, 6.4) * profile.volatility,
+        rand(0.5, 2.0) * profile.volatility,
+        rand(0.5, 2.0) * profile.volatility
+      );
+      const firstBody = body(first);
+      const second = {
+        open: first.close - rand(0.2, 1.4) * profile.volatility,
+        close: first.close + rand(0.1, Math.max(0.9, firstBody * 0.35)) * profile.volatility,
+        high: first.close + rand(0.8, 2.8) * profile.volatility,
+        low: first.close - rand(Math.max(2.4, firstBody * 0.8), Math.max(5.0, firstBody * 1.7)) * profile.volatility,
+      };
+      const thirdOpen = second.close + rand(-0.8, 0.8) * profile.volatility;
+      const thirdClose = first.open + rand(0.4, 3.8) * profile.volatility;
+      const third = candle(thirdOpen, thirdClose, rand(0.5, 2.2) * profile.volatility, rand(0.5, 1.8) * profile.volatility);
+      candles.push(first, second, third);
+      addAfterMove(candles, "up", profile.volatility, profile.afterCount);
+      return { candles, targetKey: "bullishThree" };
+    }
+
+    function generateBearishThree() {
+      const profile = generationProfile("bearish");
+      const candles = generateTrend(profile.start, profile.beforeCount, profile.preDirection, profile.volatility, profile.mode);
+      const p = candles[candles.length - 1].close;
+      const first = candle(
+        p - rand(0.8, 3.2) * profile.volatility,
+        p + rand(2.4, 6.4) * profile.volatility,
+        rand(0.5, 2.0) * profile.volatility,
+        rand(0.5, 2.0) * profile.volatility
+      );
+      const firstBody = body(first);
+      const second = {
+        open: first.close + rand(0.2, 1.4) * profile.volatility,
+        close: first.close - rand(0.1, Math.max(0.9, firstBody * 0.35)) * profile.volatility,
+        high: first.close + rand(Math.max(2.4, firstBody * 0.8), Math.max(5.0, firstBody * 1.7)) * profile.volatility,
+        low: first.close - rand(0.8, 2.8) * profile.volatility,
+      };
+      const thirdOpen = second.close + rand(-0.8, 0.8) * profile.volatility;
+      const thirdClose = first.open - rand(0.4, 3.8) * profile.volatility;
+      const third = candle(thirdOpen, thirdClose, rand(0.5, 1.8) * profile.volatility, rand(0.5, 2.2) * profile.volatility);
+      candles.push(first, second, third);
+      addAfterMove(candles, "down", profile.volatility, profile.afterCount);
+      return { candles, targetKey: "bearishThree" };
+    }
+
+    const generators = {
+      bullishEngulfing: generateBullishEngulfing,
+      bearishEngulfing: generateBearishEngulfing,
+      bullishPinBar: generateBullishPinBar,
+      bearishPinBar: generateBearishPinBar,
+      bullishThree: generateBullishThree,
+      bearishThree: generateBearishThree,
+    };
+
+    function matchesFilters(key) {
+      const lesson = lessons[key];
+      const pattern = patternFilter.value;
+      const direction = directionFilter.value;
+      const patternOk = pattern === "all" || lesson.family === pattern;
+      const directionOk = direction === "both" || lesson.direction === direction;
+      return patternOk && directionOk;
+    }
+
+    function signature(example) {
+      const key = example.targetKey;
+      const prices = example.candles.flatMap((c) => [c.open, c.high, c.low, c.close]);
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      const scale = Math.max(1, max - min);
+      const target = example.patterns?.find((p) => p.key === example.targetKey);
+      const compactShape = example.candles
+        .map((c) => {
+          const direction = isBull(c) ? "G" : "R";
+          const normalizedBody = Math.round((body(c) / scale) * 20);
+          const normalizedUpper = Math.round((upperWick(c) / scale) * 20);
+          const normalizedLower = Math.round((lowerWick(c) / scale) * 20);
+          return `${direction}${normalizedBody}.${normalizedUpper}.${normalizedLower}`;
+        })
+        .join("|");
+      return `${key}-${example.candles.length}-${target?.start ?? "x"}-${target?.end ?? "x"}-${compactShape}`;
+    }
+
+    function isTooSimilar(example) {
+      const sig = signature(example);
+      return recentSignatures.some((recent) => recent === sig);
+    }
+
+    function generateExample() {
+      const keys = Object.keys(generators).filter(matchesFilters);
+      const pool = keys.length ? keys : Object.keys(generators);
+      let best = null;
+      for (let attempt = 0; attempt < 60; attempt += 1) {
+        const key = choice(pool);
+        const example = generators[key]();
+        example.patterns = detectPatterns(example.candles);
+        const sig = signature(example);
+        const targetFound = example.patterns.some((pattern) => pattern.key === example.targetKey);
+        if (targetFound && !isTooSimilar(example)) {
+          recentSignatures.push(sig);
+          if (recentSignatures.length > 40) recentSignatures.shift();
+          return example;
+        }
+        best = example;
+      }
+      return best;
+    }
+
+    function detectPatterns(candles) {
+      const patterns = [];
+      for (let i = 0; i < candles.length; i += 1) {
+        const detected = [
+          detectBullishEngulfing(candles, i),
+          detectBearishEngulfing(candles, i),
+          detectBullishPinBar(candles, i),
+          detectBearishPinBar(candles, i),
+          detectBullishThree(candles, i),
+          detectBearishThree(candles, i),
+        ].filter(Boolean);
+        patterns.push(...detected);
+      }
+      return patterns;
+    }
+
+    function detectBullishEngulfing(candles, i) {
+      if (i < 1) return null;
+      const prev = candles[i - 1];
+      const curr = candles[i];
+      if (!(isBear(prev) && isBull(curr))) return null;
+      if (curr.open <= prev.close && curr.close >= prev.open) {
+        return pattern("bullishEngulfing", i - 1, i, [
+          "Vela previa bajista",
+          "Vela actual alcista",
+          "El cuerpo actual envuelve el cuerpo previo",
+          "Cierre por encima del open previo",
+        ]);
+      }
+      return null;
+    }
+
+    function detectBearishEngulfing(candles, i) {
+      if (i < 1) return null;
+      const prev = candles[i - 1];
+      const curr = candles[i];
+      if (!(isBull(prev) && isBear(curr))) return null;
+      if (curr.open >= prev.close && curr.close <= prev.open) {
+        return pattern("bearishEngulfing", i - 1, i, [
+          "Vela previa alcista",
+          "Vela actual bajista",
+          "El cuerpo actual envuelve el cuerpo previo",
+          "Cierre por debajo del open previo",
+        ]);
+      }
+      return null;
+    }
+
+    function detectBullishPinBar(candles, i) {
+      const c = candles[i];
+      const b = Math.max(body(c), 0.01);
+      const range = c.high - c.low;
+      if (lowerWick(c) >= b * 2.5 && upperWick(c) <= b * 1.4 && Math.max(c.open, c.close) > c.low + range * 0.62) {
+        return pattern("bullishPinBar", i, i, [
+          "Mecha inferior dominante",
+          "Cuerpo pequeño en la parte alta",
+          "Rechazo claro de precios bajos",
+          "Cierre lejos del mínimo",
+        ]);
+      }
+      return null;
+    }
+
+    function detectBearishPinBar(candles, i) {
+      const c = candles[i];
+      const b = Math.max(body(c), 0.01);
+      const range = c.high - c.low;
+      if (upperWick(c) >= b * 2.5 && lowerWick(c) <= b * 1.4 && Math.min(c.open, c.close) < c.low + range * 0.38) {
+        return pattern("bearishPinBar", i, i, [
+          "Mecha superior dominante",
+          "Cuerpo pequeño en la parte baja",
+          "Rechazo claro de precios altos",
+          "Cierre lejos del máximo",
+        ]);
+      }
+      return null;
+    }
+
+    function detectBullishThree(candles, i) {
+      if (i < 2) return null;
+      const a = candles[i - 2];
+      const b = candles[i - 1];
+      const c = candles[i];
+      const middleSmall = body(b) <= body(a) * 0.75 || lowerWick(b) > body(b) * 1.6;
+      if (isBear(a) && middleSmall && isBull(c) && c.close > a.open) {
+        return pattern("bullishThree", i - 2, i, [
+          "Primera vela bajista",
+          "Segunda vela de pausa o rechazo",
+          "Tercera vela alcista fuerte",
+          "Cierre rompe por encima del open de la primera vela",
+        ]);
+      }
+      return null;
+    }
+
+    function detectBearishThree(candles, i) {
+      if (i < 2) return null;
+      const a = candles[i - 2];
+      const b = candles[i - 1];
+      const c = candles[i];
+      const middleSmall = body(b) <= body(a) * 0.75 || upperWick(b) > body(b) * 1.6;
+      if (isBull(a) && middleSmall && isBear(c) && c.close < a.open) {
+        return pattern("bearishThree", i - 2, i, [
+          "Primera vela alcista",
+          "Segunda vela de pausa o rechazo",
+          "Tercera vela bajista fuerte",
+          "Cierre rompe por debajo del open de la primera vela",
+        ]);
+      }
+      return null;
+    }
+
+    function pattern(key, start, end, rules) {
+      return {
+        key,
+        start,
+        end,
+        rules,
+        ...lessons[key],
+      };
+    }
+
+    function resizeCanvas() {
+      const rect = chart.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      chart.width = Math.max(1, Math.floor(rect.width * ratio));
+      chart.height = Math.max(1, Math.floor(rect.height * ratio));
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      return { width: rect.width, height: rect.height };
+    }
+
+    function drawChart() {
+      const { width, height } = resizeCanvas();
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+
+      if (!currentExample) {
+        ctx.fillStyle = "#6b7280";
+        ctx.font = "14px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Presiona Nuevo ejemplo para practicar.", width / 2, height / 2);
+        return;
+      }
+
+      const candles = currentExample.candles;
+      const selected = currentExample.patterns[selectedPatternIndex];
+      const pad = { top: 28, right: 72, bottom: 42, left: 28 };
+      const plotW = width - pad.left - pad.right;
+      const plotH = height - pad.top - pad.bottom;
+      const highs = candles.map((c) => c.high);
+      const lows = candles.map((c) => c.low);
+      let maxPrice = Math.max(...highs);
+      let minPrice = Math.min(...lows);
+      const pricePad = Math.max((maxPrice - minPrice) * 0.10, 2);
+      maxPrice += pricePad;
+      minPrice -= pricePad;
+      const yFor = (price) => pad.top + ((maxPrice - price) / (maxPrice - minPrice)) * plotH;
+      const step = plotW / candles.length;
+      const bodyW = Math.max(14, Math.min(34, step * 0.58));
+      const xFor = (index) => pad.left + step * index + step / 2;
+
+      ctx.strokeStyle = GRID;
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 6; i += 1) {
+        const y = pad.top + (plotH / 6) * i;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(width - pad.right, y);
+        ctx.stroke();
+        const price = maxPrice - ((maxPrice - minPrice) / 6) * i;
+        ctx.fillStyle = "#6b7280";
+        ctx.font = "11px system-ui, sans-serif";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillText(price.toFixed(1), width - pad.right + 10, y);
+      }
+
+      if (selected) {
+        const x1 = xFor(selected.start) - step * 0.48;
+        const x2 = xFor(selected.end) + step * 0.48;
+        ctx.fillStyle = selected.direction === "bullish" ? "rgba(8, 153, 129, 0.10)" : "rgba(242, 54, 69, 0.10)";
+        ctx.fillRect(x1, pad.top, Math.max(8, x2 - x1), plotH);
+        ctx.strokeStyle = ACCENT;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 5]);
+        ctx.strokeRect(x1, pad.top, Math.max(8, x2 - x1), plotH);
+        ctx.setLineDash([]);
+      }
+
+      candles.forEach((c, index) => {
+        const x = xFor(index);
+        const openY = yFor(c.open);
+        const closeY = yFor(c.close);
+        const highY = yFor(c.high);
+        const lowY = yFor(c.low);
+        const color = isBull(c) ? BULL : BEAR;
+        const inSelection = selected && index >= selected.start && index <= selected.end;
+
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = inSelection ? 3 : 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x, highY);
+        ctx.lineTo(x, lowY);
+        ctx.stroke();
+
+        const top = Math.min(openY, closeY);
+        const bodyH = Math.max(3, Math.abs(closeY - openY));
+        ctx.fillRect(x - bodyW / 2, top, bodyW, bodyH);
+
+        ctx.fillStyle = inSelection ? ACCENT : "#6b7280";
+        ctx.font = inSelection ? "bold 12px system-ui, sans-serif" : "11px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText(String(index + 1), x, height - pad.bottom + 14);
+      });
+
+      if (selected && !hideAnswer.checked) {
+        const x = (xFor(selected.start) + xFor(selected.end)) / 2;
+        const y = pad.top + 12;
+        ctx.fillStyle = ACCENT;
+        ctx.font = "bold 13px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText(selected.name, x, y);
+      }
+
+      ctx.strokeStyle = "#cfd5e2";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, pad.top);
+      ctx.lineTo(pad.left, height - pad.bottom);
+      ctx.lineTo(width - pad.right, height - pad.bottom);
+      ctx.stroke();
+    }
+
+    function renderInfo() {
+      const patterns = currentExample?.patterns || [];
+      const selected = patterns[selectedPatternIndex];
+      const hidden = hideAnswer.checked;
+      infoPanel.classList.toggle("hidden-answer", hidden);
+
+      if (!selected) {
+        badgeEl.className = "badge neutral";
+        badgeEl.textContent = "Sin patrón";
+        titleEl.textContent = "No detectado";
+        meaningEl.textContent = "Genera otro ejemplo o cambia filtros.";
+        rulesEl.innerHTML = "";
+        contextEl.textContent = "Usa patrones como confirmación dentro de estructura.";
+        avoidEl.textContent = "Evita operar patrones aislados.";
+        return;
+      }
+
+      badgeEl.className = `badge ${selected.direction === "bullish" ? "bull" : "bear"}`;
+      badgeEl.textContent = hidden ? "Respuesta oculta" : selected.direction.toUpperCase();
+      titleEl.textContent = hidden ? "Respuesta oculta" : selected.name;
+      meaningEl.textContent = selected.meaning;
+      contextEl.textContent = selected.context;
+      avoidEl.textContent = selected.avoid;
+      rulesEl.innerHTML = selected.rules.map((rule) => `<li><span class="check">✓</span><span>${rule}</span></li>`).join("");
+    }
+
+    function renderPatternList() {
+      const patterns = currentExample?.patterns || [];
+      if (!patterns.length) {
+        patternList.innerHTML = "<div class='pattern-row'><strong>Sin patrones</strong><span>Genera otro ejemplo.</span></div>";
+        return;
+      }
+
+      patternList.innerHTML = patterns.map((p, index) => `
+        <div class="pattern-row ${index === selectedPatternIndex ? "selected" : ""}" data-index="${index}">
+          <strong>${hideAnswer.checked ? "Patrón oculto" : p.name}</strong>
+          <span>Velas ${p.start + 1} a ${p.end + 1}</span>
+        </div>
+      `).join("");
+    }
+
+    function renderAll() {
+      renderInfo();
+      renderPatternList();
+      drawChart();
+    }
+
+    function newExample() {
+      currentExample = generateExample();
+      selectedPatternIndex = Math.max(0, currentExample.patterns.findIndex((p) => p.key === currentExample.targetKey));
+      const selected = currentExample.patterns[selectedPatternIndex];
+      chartTitle.textContent = hideAnswer.checked ? "Secuencia de práctica" : selected?.name || "Secuencia de velas";
+      chartSubtitle.textContent = `${currentExample.candles.length} velas | ejemplo aleatorio validado por detector`;
+      renderAll();
+    }
+
+    newButton.addEventListener("click", newExample);
+    showAnswer.addEventListener("click", () => {
+      hideAnswer.checked = false;
+      renderAll();
+    });
+    hideAnswer.addEventListener("change", renderAll);
+    patternFilter.addEventListener("change", newExample);
+    directionFilter.addEventListener("change", newExample);
+    patternList.addEventListener("click", (event) => {
+      const row = event.target.closest("[data-index]");
+      if (!row) return;
+      selectedPatternIndex = Number(row.dataset.index);
+      renderAll();
+    });
+    prevButton.addEventListener("click", () => {
+      const count = currentExample?.patterns?.length || 0;
+      if (!count) return;
+      selectedPatternIndex = (selectedPatternIndex - 1 + count) % count;
+      renderAll();
+    });
+    nextButton.addEventListener("click", () => {
+      const count = currentExample?.patterns?.length || 0;
+      if (!count) return;
+      selectedPatternIndex = (selectedPatternIndex + 1) % count;
+      renderAll();
+    });
+    window.addEventListener("resize", drawChart);
+
+    newExample();
+  </script>
+</body>
+</html>
