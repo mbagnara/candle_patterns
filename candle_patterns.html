@@ -125,7 +125,7 @@
       align-items: start;
     }
 
-    .chart-panel, .info-panel, .patterns-panel {
+    .chart-panel, .info-panel, .patterns-panel, .ai-panel {
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -168,7 +168,7 @@
       gap: 14px;
     }
 
-    .info-panel, .patterns-panel {
+    .info-panel, .patterns-panel, .ai-panel {
       padding: 14px;
     }
 
@@ -278,6 +278,66 @@
       user-select: none;
     }
 
+    .ai-panel textarea {
+      width: 100%;
+      min-height: 76px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 10px;
+      color: var(--ink);
+      font: inherit;
+      line-height: 1.45;
+    }
+
+    .ai-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 10px 0 12px;
+    }
+
+    .ai-status {
+      min-height: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .ai-chat {
+      display: grid;
+      gap: 9px;
+      max-height: 420px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .ai-message {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #ffffff;
+      color: #313747;
+      font-size: 14px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+
+    .ai-message.user {
+      background: #f4f7ff;
+      border-color: #cbd8ff;
+    }
+
+    .ai-message.assistant {
+      background: #fbfcff;
+    }
+
+    .ai-message.error {
+      border-color: #fac8ce;
+      background: #fff3f4;
+      color: #9f2530;
+    }
+
     @media (max-width: 980px) {
       .toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .layout { grid-template-columns: 1fr; }
@@ -353,6 +413,21 @@
           <div class="kicker">Patrones detectados</div>
           <div id="pattern-list" class="patterns"></div>
         </section>
+
+        <section class="ai-panel">
+          <div class="kicker">Tutor AI</div>
+          <p class="copy">Analiza el patrón seleccionado y haz preguntas de seguimiento. Requiere abrir la página desde `pattern_ai_server.py`.</p>
+          <div class="ai-actions">
+            <button id="ai-analyze" class="primary" type="button">Analizar con ChatGPT</button>
+            <button id="ai-clear" type="button">Limpiar chat</button>
+          </div>
+          <textarea id="ai-question" placeholder="Pregunta de seguimiento, por ejemplo: ¿qué hace fuerte o débil este patrón?"></textarea>
+          <div class="ai-actions">
+            <button id="ai-ask" type="button">Preguntar</button>
+          </div>
+          <div id="ai-status" class="ai-status"></div>
+          <div id="ai-chat" class="ai-chat"></div>
+        </section>
       </aside>
     </section>
   </main>
@@ -377,6 +452,12 @@
     const chartSubtitle = document.querySelector("#chart-subtitle");
     const prevButton = document.querySelector("#select-prev");
     const nextButton = document.querySelector("#select-next");
+    const aiAnalyzeButton = document.querySelector("#ai-analyze");
+    const aiAskButton = document.querySelector("#ai-ask");
+    const aiClearButton = document.querySelector("#ai-clear");
+    const aiQuestion = document.querySelector("#ai-question");
+    const aiStatus = document.querySelector("#ai-status");
+    const aiChat = document.querySelector("#ai-chat");
 
     const BULL = "#089981";
     const BEAR = "#f23645";
@@ -386,6 +467,7 @@
     let currentExample = null;
     let selectedPatternIndex = 0;
     let recentSignatures = [];
+    let aiMessages = [];
 
     const lessons = {
       bullishEngulfing: {
@@ -996,6 +1078,112 @@
       `).join("");
     }
 
+    function selectedPattern() {
+      return currentExample?.patterns?.[selectedPatternIndex] || null;
+    }
+
+    function buildAiContext() {
+      const selected = selectedPattern();
+      if (!currentExample || !selected) return null;
+
+      return {
+        pattern: {
+          key: selected.key,
+          name: selected.name,
+          family: selected.family,
+          direction: selected.direction,
+          start_index: selected.start,
+          end_index: selected.end,
+          rules: selected.rules,
+          meaning: selected.meaning,
+          context: selected.context,
+          avoid: selected.avoid,
+        },
+        candles: currentExample.candles.map((candle, index) => ({
+          index: index + 1,
+          open: Number(candle.open.toFixed(2)),
+          high: Number(candle.high.toFixed(2)),
+          low: Number(candle.low.toFixed(2)),
+          close: Number(candle.close.toFixed(2)),
+          role: index >= selected.start && index <= selected.end ? "pattern" : "context",
+        })),
+      };
+    }
+
+    function renderAiChat() {
+      aiChat.innerHTML = aiMessages.map((message) => `
+        <div class="ai-message ${message.role}">
+          ${escapeHtml(message.content)}
+        </div>
+      `).join("");
+      aiChat.scrollTop = aiChat.scrollHeight;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function resetAiChat() {
+      aiMessages = [];
+      aiStatus.textContent = "";
+      aiQuestion.value = "";
+      renderAiChat();
+    }
+
+    async function callAiTutor(mode) {
+      const context = buildAiContext();
+      if (!context) {
+        aiStatus.textContent = "No hay patrón seleccionado para analizar.";
+        return;
+      }
+
+      const question = aiQuestion.value.trim();
+      if (mode === "followup" && !question) {
+        aiStatus.textContent = "Escribe una pregunta de seguimiento.";
+        return;
+      }
+
+      if (mode === "followup") {
+        aiMessages.push({ role: "user", content: question });
+        aiQuestion.value = "";
+        renderAiChat();
+      }
+
+      aiStatus.textContent = "Analizando con ChatGPT...";
+      aiAnalyzeButton.disabled = true;
+      aiAskButton.disabled = true;
+
+      try {
+        const response = await fetch("/api/analyze-pattern", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mode,
+            context,
+            question,
+            messages: aiMessages.slice(-8),
+          }),
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || "No se pudo generar el análisis.");
+        aiMessages.push({ role: "assistant", content: payload.analysis });
+        aiStatus.textContent = "Listo.";
+        renderAiChat();
+      } catch (error) {
+        aiMessages.push({ role: "error", content: error.message });
+        aiStatus.textContent = "Error.";
+        renderAiChat();
+      } finally {
+        aiAnalyzeButton.disabled = false;
+        aiAskButton.disabled = false;
+      }
+    }
+
     function renderAll() {
       renderInfo();
       renderPatternList();
@@ -1008,6 +1196,7 @@
       const selected = currentExample.patterns[selectedPatternIndex];
       chartTitle.textContent = hideAnswer.checked ? "Secuencia de práctica" : selected?.name || "Secuencia de velas";
       chartSubtitle.textContent = `${currentExample.candles.length} velas | ejemplo aleatorio validado por detector`;
+      resetAiChat();
       renderAll();
     }
 
@@ -1023,20 +1212,26 @@
       const row = event.target.closest("[data-index]");
       if (!row) return;
       selectedPatternIndex = Number(row.dataset.index);
+      resetAiChat();
       renderAll();
     });
     prevButton.addEventListener("click", () => {
       const count = currentExample?.patterns?.length || 0;
       if (!count) return;
       selectedPatternIndex = (selectedPatternIndex - 1 + count) % count;
+      resetAiChat();
       renderAll();
     });
     nextButton.addEventListener("click", () => {
       const count = currentExample?.patterns?.length || 0;
       if (!count) return;
       selectedPatternIndex = (selectedPatternIndex + 1) % count;
+      resetAiChat();
       renderAll();
     });
+    aiAnalyzeButton.addEventListener("click", () => callAiTutor("initial"));
+    aiAskButton.addEventListener("click", () => callAiTutor("followup"));
+    aiClearButton.addEventListener("click", resetAiChat);
     window.addEventListener("resize", drawChart);
 
     newExample();

@@ -1,22 +1,29 @@
-# Futuro: Tutor AI Para Patrones De Velas
+# Tutor AI Para Patrones De Velas
 
-Pendiente para una siguiente etapa:
+Implementado como primera version local:
 
-- Agregar boton `Analizar con ChatGPT`.
-- Usar un backend local, no llamadas directas desde el HTML.
-- Mantener `OPENAI_API_KEY` en `.env`, nunca en el navegador.
-- Enviar a la API datos estructurados del patron:
+- Boton `Analizar con ChatGPT`.
+- Backend local `pattern_ai_server.py`; no hay llamadas directas desde el HTML.
+- `OPENAI_API_KEY` vive en `.env`, nunca en el navegador.
+- La API recibe datos estructurados del patron:
   - tipo de patron
   - direccion
   - velas OHLC
   - indice de inicio y confirmacion
   - reglas detectadas
-- Mostrar un panel `Analisis AI` con:
+- Panel `Tutor AI` con:
   - lectura del patron
   - psicologia del mercado
   - calidad de la confirmacion
   - que lo fortalece
   - que lo debilita
   - pregunta de estudio
-- Permitir preguntas de seguimiento usando el mismo contexto del patron actual.
-- Mantener el tono educativo: no dar senales de compra/venta.
+- Preguntas de seguimiento usando el mismo contexto del patron actual.
+- Tono educativo: no dar senales de compra/venta.
+
+Mejoras futuras:
+
+- Streaming de respuesta.
+- Selector de nivel: principiante, intermedio, avanzado.
+- Comparacion con patron ideal.
+- Soporte para analizar capturas del canvas ademas de OHLC.
